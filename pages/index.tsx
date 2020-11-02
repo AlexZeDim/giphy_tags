@@ -2,7 +2,14 @@ import Image from 'next/image'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import React, { useState } from 'react'
 import { Formik, Form, Field } from 'formik'
-import { Button, Container, LinearProgress } from '@material-ui/core'
+import {
+  Button,
+  Container,
+  LinearProgress,
+  GridList,
+  GridListTile,
+  GridListTileBar,
+} from '@material-ui/core'
 import { TextField } from 'formik-material-ui'
 
 interface Values {
@@ -10,6 +17,8 @@ interface Values {
 }
 
 interface Giphy {
+  tag: string
+  uploadedAt: number
   image: string
   height: number
   width: number
@@ -17,9 +26,29 @@ interface Giphy {
 
 export default function Home() {
   const [images, setImages] = useState([])
+  const [group, groupBy] = useState('Group')
+
+  function handlePurge() {
+    setImages([])
+  }
+
+  function groupUnwind() {
+    setImages([])
+  }
+
   /**
-   * TODO clear State
+   * Немного красоты для grid-line,
+   * заодно ответ на вопрос, как работают
+   * closures в js и стрелочные функции
    */
+  const beautyGrid = (resolution: number, width: number): number => {
+    if (width > resolution) {
+      return 5
+    } else {
+      return Math.round(width / (resolution / 5))
+    }
+  }
+
   return (
     <main>
       <CssBaseline />
@@ -45,16 +74,20 @@ export default function Home() {
             const { data, errors } = await fetch(
               `https://api.giphy.com/v1/gifs/random?api_key=1FIYRBT8TY3tPb1RuCLsnXg4Gx7kWeYp&tag=${values.tag}`
             ).then((res) => res.json())
-            setImages((setImages) => [
-              ...setImages,
-              {
-                image: data.image_url,
-                height: data.image_height,
-                width: data.image_width,
-              },
-            ])
+            if (errors) {
+              return
+            } else {
+              setImages((setImages) => [
+                ...setImages,
+                {
+                  tag: values.tag,
+                  image: data.image_url,
+                  height: data.image_height,
+                  width: data.image_width,
+                },
+              ])
+            }
             setSubmitting(false)
-            console.log(errors)
           }}
         >
           {({ submitForm, isSubmitting }) => (
@@ -63,7 +96,7 @@ export default function Home() {
               {isSubmitting && <LinearProgress />}
               <br />
               <Button
-                variant="contained"
+                variant="outlined"
                 color="primary"
                 disabled={isSubmitting}
                 onClick={submitForm}
@@ -71,27 +104,43 @@ export default function Home() {
                 Submit
               </Button>
               <Button
-                variant="contained"
+                variant="outlined"
                 color="primary"
                 disabled={isSubmitting}
                 onClick={submitForm}
               >
-                Purge
+                Template
               </Button>
             </Form>
           )}
         </Formik>
-        {images.length
-          ? images.map((img: Giphy, i: number) => (
-              <Image
+        <Button variant="contained" color="primary" onClick={handlePurge}>
+          Purge
+        </Button>
+        {images.length ? (
+          /**
+           * Можно просто сделать map => img xs,
+           * но зачем, если есть Material GridList?
+           */
+          <GridList cellHeight={250} cols={5}>
+            {images.map((img: Giphy, i: number) => (
+              <GridListTile
                 key={i}
-                src={img.image}
-                width={img.width}
-                height={img.height}
-                alt="Profile Picture"
-              />
-            ))
-          : ``}
+                cols={beautyGrid(window.innerWidth | 1920, img.width)}
+              >
+                <Image
+                  src={img.image}
+                  width={img.width}
+                  height={img.height}
+                  alt={img.tag}
+                />
+                <GridListTileBar title={img.tag} />
+              </GridListTile>
+            ))}
+          </GridList>
+        ) : (
+          ``
+        )}
       </Container>
     </main>
   )
