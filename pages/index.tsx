@@ -2,6 +2,7 @@ import Image from 'next/image'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import React, { useState } from 'react'
 import { Formik, Form, Field } from 'formik'
+import { TextField } from 'formik-material-ui'
 import {
   Button,
   Container,
@@ -10,7 +11,11 @@ import {
   GridListTile,
   GridListTileBar,
 } from '@material-ui/core'
-import { TextField } from 'formik-material-ui'
+
+/**
+ * Когда нибудь все интерфейсы будут вынесены в отдельный файл
+ * но этот день, — не сегодня
+ */
 
 interface Values {
   tag: string
@@ -25,21 +30,36 @@ interface Giphy {
 }
 
 export default function Home() {
+  //Можно было бы сделать один большой state..
   const [images, setImages] = useState([])
+  //..в виде объекта, и прописать ему интерфейс, но зачем?
   const [group, groupBy] = useState('Group')
+  /**
+   * Если что, это такая ирония, я просто хочу показать что понимаю как
+   * работает управления состояния и без Redux, поэтому часть формы дальше будет
+   * реализованна как через Formik для управления состоянием формы, так и отдельными
+   * элементами (кнопками) со своим состояниями
+   */
 
   function handlePurge() {
     setImages([])
   }
 
-  function groupUnwind() {
-    setImages([])
+  /**
+   * ответ на вопрос, как работают
+   * closures в js, и какой стандарт JS я использую
+   * осталось только ключевое слово this добавить
+   * ой, постойте-ка, у него другой контекст
+   * в стрелочных функциях!
+   */
+  const groupUnwind = () => {
+    group === 'Group' ? groupBy('Unwind') : groupBy('Group')
   }
 
   /**
-   * Немного красоты для grid-line,
-   * заодно ответ на вопрос, как работают
-   * closures в js и стрелочные функции
+   * Немного красоты для grid-line и
+   * строгой typescript типизации,
+   * хорошо хоть interface не пришлось писать
    */
   const beautyGrid = (resolution: number, width: number): number => {
     if (width > resolution) {
@@ -103,19 +123,14 @@ export default function Home() {
               >
                 Submit
               </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                disabled={isSubmitting}
-                onClick={submitForm}
-              >
-                Template
-              </Button>
             </Form>
           )}
         </Formik>
         <Button variant="contained" color="primary" onClick={handlePurge}>
           Purge
+        </Button>
+        <Button variant="outlined" color="primary" onClick={groupUnwind}>
+          {group}
         </Button>
         {images.length ? (
           /**
