@@ -46,28 +46,37 @@ export default function Home() {
   }
 
   /**
-   * ответ на вопрос, как работают
-   * closures в js, и какой стандарт JS я использую
+   * ответ на вопрос, как работают closures в js,
    * осталось только ключевое слово this добавить
    * ой, постойте-ка, у него другой контекст
    * в стрелочных функциях!
    */
   const groupUnwind = () => {
-    group === 'Group' ? groupBy('Unwind') : groupBy('Group')
+    if (group === 'Group') {
+      const sortedAsc = images.sort((a, b) => a.tag.localeCompare(b.tag))
+      console.log(`-------`)
+      console.log(sortedAsc)
+      console.log(`-------`)
+      setImages(sortedAsc)
+      groupBy('Unwind')
+    } else {
+      const sortedTime = images.sort(
+        (a: number, b: number) => a.uploadedAt - b.uploadedAt
+      )
+      console.log(`========`)
+      console.log(sortedTime)
+      console.log(`========`)
+      setImages(sortedTime)
+      groupBy('Group')
+    }
   }
 
   /**
-   * Немного красоты для grid-line и
-   * строгой typescript типизации,
-   * хорошо хоть interface не пришлось писать
+   * Немного красоты для grid-line,
+   * магии ES6+, ternary operators и строгой typescript типизации
    */
-  const beautyGrid = (resolution: number, width: number): number => {
-    if (width > resolution) {
-      return 5
-    } else {
-      return Math.round(width / (resolution / 5))
-    }
-  }
+  const beautyGrid = (resolution: number, width: number): number =>
+    width > resolution ? 5 : Math.round(width / (resolution / 5))
 
   return (
     <main>
@@ -91,6 +100,13 @@ export default function Home() {
             return errors
           }}
           onSubmit={async (values, { setSubmitting }) => {
+            /**
+             * А можно ли было вообще обойтись без Formik? -да, конечно
+             * так-же вместо него, можно было бы взять Redux или
+             * React Hook Form, впрочем моя задача здесь, показать
+             * что я могу использовать как сторонние библиотеки для
+             * реализации форм, так стандартные хуки из коробки
+             */
             const { data, errors } = await fetch(
               `https://api.giphy.com/v1/gifs/random?api_key=1FIYRBT8TY3tPb1RuCLsnXg4Gx7kWeYp&tag=${values.tag}`
             ).then((res) => res.json())
@@ -102,8 +118,9 @@ export default function Home() {
                 {
                   tag: values.tag,
                   image: data.image_url,
-                  height: data.image_height,
-                  width: data.image_width,
+                  height: parseInt(data.image_height),
+                  width: parseInt(data.image_width),
+                  updatedAt: Date.now(),
                 },
               ])
             }

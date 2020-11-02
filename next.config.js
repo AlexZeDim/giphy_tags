@@ -1,7 +1,7 @@
 module.exports = {
   images: {
     domains: [
-      'giphy.com',
+      '*.giphy.com',
       'media0.giphy.com',
       'media1.giphy.com',
       'media2.giphy.com',
