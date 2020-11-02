@@ -31,19 +31,24 @@ interface Giphy {
 }
 
 export default function Home() {
-  //Можно было бы сделать один большой state..
-  const [images, setImages] = useState([])
-  //..в виде объекта, и прописать ему интерфейс, но зачем?
-  const [sort, sortBy] = useState('Tags')
   /**
-   * Если что, это ирония, я просто хочу показать что понимаю как
-   * работает управления состояния и без Redux, поэтому часть формы дальше будет
-   * реализованна как через Formik для управления состоянием формы, так и отдельными
-   * элементами (кнопками) со своим состояниями
+   * Делаем один большой state для управления состоянием всего приложения,
+   * часть формы далее будет реализованна через Formik для управления состоянием формы
+   * просто потому могу
    */
+  const [state, setState] = useState({
+    groupedImages: {},
+    storedImages: [],
+    action: 'Group',
+  })
 
+  //Reset state to default
   function handlePurge() {
-    setImages([])
+    setState({
+      groupedImages: {},
+      storedImages: [],
+      action: 'Group',
+    })
   }
 
   /**
@@ -52,22 +57,25 @@ export default function Home() {
    * ой, постойте-ка, у него другой контекст
    * в стрелочных функциях!
    */
-  const sortByTagsOrTime = () => {
-    if (sort === 'Tags') {
-      const sortedAsc = images.sort((a, b) => a.tag.localeCompare(b.tag))
-      console.log(`-------`)
-      console.log(sortedAsc)
-      console.log(`-------`)
-      setImages(sortedAsc)
-      sortBy('Last Uploaded')
+  const groupImages = () => {
+    if (state.action === 'Group') {
+      //Group images with lodash groupBy
+      const categories = groupBy(state.storedImages, 'tag')
+      //Уж лучше было использовать Redux, чем пересобирать state каждый раз руками
+      setState({
+        groupedImages: { ...state.groupedImages, ...categories },
+        storedImages: [...state.storedImages],
+        action: 'Sort',
+      })
     } else {
-      const sortedTime = images.sort((a, b) => a.updatedAt - b.updatedAt)
-      const test = groupBy(images, 'tag')
-      console.log(`========`)
-      console.log(test)
-      console.log(`========`)
-      setImages(sortedTime)
-      sortBy('Tags')
+      const sortedTime = state.storedImages.sort(
+        (a, b) => a.updatedAt - b.updatedAt
+      )
+      setState({
+        groupedImages: { ...state.groupedImages },
+        storedImages: sortedTime,
+        action: 'Group',
+      })
     }
   }
 
@@ -113,16 +121,20 @@ export default function Home() {
             if (errors) {
               return
             } else {
-              setImages((setImages) => [
-                ...setImages,
-                {
-                  tag: values.tag,
-                  image: data.image_url,
-                  height: parseInt(data.image_height),
-                  width: parseInt(data.image_width),
-                  updatedAt: Date.now(),
-                },
-              ])
+              setState({
+                groupedImages: { ...state.groupedImages },
+                storedImages: [
+                  ...state.storedImages,
+                  {
+                    tag: values.tag,
+                    image: data.image_url,
+                    height: parseInt(data.image_height),
+                    width: parseInt(data.image_width),
+                    updatedAt: Date.now(),
+                  },
+                ],
+                action: state.action,
+              })
             }
             setSubmitting(false)
           }}
@@ -146,16 +158,16 @@ export default function Home() {
         <Button variant="contained" color="primary" onClick={handlePurge}>
           Purge
         </Button>
-        <Button variant="outlined" color="primary" onClick={sortByTagsOrTime}>
-          {`Sort by ${sort}`}
+        <Button variant="outlined" color="primary" onClick={groupImages}>
+          {state.action}
         </Button>
-        {images.length ? (
+        {state.storedImages.length && state.action === 'Group' ? (
           /**
            * Можно просто сделать map => img xs,
            * но зачем, если есть Material GridList?
            */
           <GridList cellHeight={250} cols={5}>
-            {images.map((img: Giphy, i: number) => (
+            {state.storedImages.map((img: Giphy, i: number) => (
               <GridListTile
                 key={i}
                 cols={beautyGrid(window.innerWidth | 1920, img.width)}
