@@ -3,6 +3,7 @@ import CssBaseline from '@material-ui/core/CssBaseline'
 import React, { useState } from 'react'
 import { Formik, Form, Field } from 'formik'
 import { TextField } from 'formik-material-ui'
+import groupBy from 'lodash.groupby'
 import {
   Button,
   Container,
@@ -23,7 +24,7 @@ interface Values {
 
 interface Giphy {
   tag: string
-  uploadedAt: number
+  updatedAt: number
   image: string
   height: number
   width: number
@@ -33,9 +34,9 @@ export default function Home() {
   //Можно было бы сделать один большой state..
   const [images, setImages] = useState([])
   //..в виде объекта, и прописать ему интерфейс, но зачем?
-  const [group, groupBy] = useState('Group')
+  const [sort, sortBy] = useState('Tags')
   /**
-   * Если что, это такая ирония, я просто хочу показать что понимаю как
+   * Если что, это ирония, я просто хочу показать что понимаю как
    * работает управления состояния и без Redux, поэтому часть формы дальше будет
    * реализованна как через Formik для управления состоянием формы, так и отдельными
    * элементами (кнопками) со своим состояниями
@@ -51,23 +52,22 @@ export default function Home() {
    * ой, постойте-ка, у него другой контекст
    * в стрелочных функциях!
    */
-  const groupUnwind = () => {
-    if (group === 'Group') {
+  const sortByTagsOrTime = () => {
+    if (sort === 'Tags') {
       const sortedAsc = images.sort((a, b) => a.tag.localeCompare(b.tag))
       console.log(`-------`)
       console.log(sortedAsc)
       console.log(`-------`)
       setImages(sortedAsc)
-      groupBy('Unwind')
+      sortBy('Last Uploaded')
     } else {
-      const sortedTime = images.sort(
-        (a: number, b: number) => a.uploadedAt - b.uploadedAt
-      )
+      const sortedTime = images.sort((a, b) => a.updatedAt - b.updatedAt)
+      const test = groupBy(images, 'tag')
       console.log(`========`)
-      console.log(sortedTime)
+      console.log(test)
       console.log(`========`)
       setImages(sortedTime)
-      groupBy('Group')
+      sortBy('Tags')
     }
   }
 
@@ -146,8 +146,8 @@ export default function Home() {
         <Button variant="contained" color="primary" onClick={handlePurge}>
           Purge
         </Button>
-        <Button variant="outlined" color="primary" onClick={groupUnwind}>
-          {group}
+        <Button variant="outlined" color="primary" onClick={sortByTagsOrTime}>
+          {`Sort by ${sort}`}
         </Button>
         {images.length ? (
           /**
