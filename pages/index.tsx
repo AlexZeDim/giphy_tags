@@ -1,23 +1,24 @@
 import Image from 'next/image'
+import CssBaseline from '@material-ui/core/CssBaseline'
 import React, { useState } from 'react'
 import { Formik, Form, Field } from 'formik'
-import CssBaseline from '@material-ui/core/CssBaseline'
-import {
-  Button,
-  Container,
-  LinearProgress,
-  Typography,
-} from '@material-ui/core'
+import { Button, Container, LinearProgress } from '@material-ui/core'
 import { TextField } from 'formik-material-ui'
 
 interface Values {
   tag: string
 }
 
+interface Giphy {
+  image: string
+  height: number
+  width: number
+}
+
 export default function Home() {
   const [images, setImages] = useState([])
   /**
-   * TODO clea
+   * TODO clear State
    */
   return (
     <main>
@@ -28,34 +29,32 @@ export default function Home() {
             tag: '',
           }}
           validate={(values) => {
+            /**
+             * Пусть форма делает reject input
+             * без <popover> или <modal>
+             */
             const errors: Partial<Values> = {}
             if (!values.tag) {
               errors.tag = 'Required'
             } else if (!/^[A-Za-z0-9]/i.test(values.tag)) {
-              errors.tag =
-                'Try to use only letter or numbers, everything else is not allowed'
+              errors.tag = 'Only letters or numbers are allowed!'
             }
             return errors
           }}
           onSubmit={async (values, { setSubmitting }) => {
-            const {
-              // eslint-disable-next-line @typescript-eslint/camelcase
-              data: { image_url, image_height, image_width },
-              errors,
-            } = await fetch(
+            const { data, errors } = await fetch(
               `https://api.giphy.com/v1/gifs/random?api_key=1FIYRBT8TY3tPb1RuCLsnXg4Gx7kWeYp&tag=${values.tag}`
             ).then((res) => res.json())
             setImages((setImages) => [
               ...setImages,
               {
-                // eslint-disable-next-line @typescript-eslint/camelcase
-                image: image_url,
-                height: image_height,
-                width: image_width,
+                image: data.image_url,
+                height: data.image_height,
+                width: data.image_width,
               },
             ])
             setSubmitting(false)
-            console.log(data, errors)
+            console.log(errors)
           }}
         >
           {({ submitForm, isSubmitting }) => (
@@ -71,19 +70,28 @@ export default function Home() {
               >
                 Submit
               </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={isSubmitting}
+                onClick={submitForm}
+              >
+                Purge
+              </Button>
             </Form>
           )}
         </Formik>
-        {image ? (
-          <Image
-            src="https://media3.giphy.com/media/FsSOIASsQbJyE/giphy.gif"
-            width="400"
-            height="400"
-            alt="Profile Picture"
-          />
-        ) : (
-          ``
-        )}
+        {images.length
+          ? images.map((img: Giphy, i: number) => (
+              <Image
+                key={i}
+                src={img.image}
+                width={img.width}
+                height={img.height}
+                alt="Profile Picture"
+              />
+            ))
+          : ``}
       </Container>
     </main>
   )
