@@ -5,6 +5,7 @@ import React, { useState } from 'react'
 import { Formik, Form, Field } from 'formik'
 import { TextField } from 'formik-material-ui'
 import groupBy from 'lodash.groupby'
+import { Delete } from '@material-ui/icons'
 import { Theme, createStyles, makeStyles } from '@material-ui/core/styles'
 import {
   Button,
@@ -61,6 +62,9 @@ const useStyles = makeStyles((theme: Theme) =>
       border: '2px solid #000',
       boxShadow: theme.shadows[5],
       padding: theme.spacing(2, 4, 3),
+    },
+    input: {
+      width: '65%',
     },
   })
 )
@@ -173,7 +177,7 @@ export default function Home() {
               Giphy Tags
             </Typography>
           </Grid>
-          <Grid item xs={6} sm={6}>
+          <Grid item xs={6} sm={6} style={{ width: 'auto' }}>
             <Formik
               initialValues={{
                 tag: '',
@@ -246,6 +250,7 @@ export default function Home() {
                     type="tag"
                     label="tag"
                     name="tag"
+                    className={classes.input}
                   />
                   {isSubmitting && <LinearProgress />}
                   <Button
@@ -261,7 +266,12 @@ export default function Home() {
             </Formik>
           </Grid>
           <Grid item xs={3} sm={3}>
-            <Button variant="contained" color="primary" onClick={handlePurge}>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handlePurge}
+              startIcon={<Delete />}
+            >
               Purge
             </Button>
           </Grid>
