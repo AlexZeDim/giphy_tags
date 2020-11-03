@@ -4,9 +4,9 @@
   "license": "MIT",
   "version": "1.0.0",
   "scripts": {
-    "dev": "next dev",
+    "production": "next start",
     "build": "next build",
-    "start": "next start",
+    "start": "next dev",
     "type-check": "tsc --pretty --noEmit",
     "format": "prettier --write .",
     "lint": "eslint . --ext ts --ext tsx --ext js",
