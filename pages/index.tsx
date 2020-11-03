@@ -12,6 +12,7 @@ import {
   GridList,
   GridListTile,
   GridListTileBar,
+  Modal,
 } from '@material-ui/core'
 
 /**
@@ -31,6 +32,12 @@ interface Giphy {
   width: number
 }
 
+interface ModalError {
+  open: boolean
+  name: string
+  description: string
+}
+
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
@@ -42,7 +49,6 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     gridList: {
       flexWrap: 'nowrap',
-      // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
       transform: 'translateZ(0)',
     },
     title: {
@@ -51,6 +57,14 @@ const useStyles = makeStyles((theme: Theme) =>
     titleBar: {
       background:
         'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+    },
+    paper: {
+      position: 'absolute',
+      width: 400,
+      backgroundColor: theme.palette.background.paper,
+      border: '2px solid #000',
+      boxShadow: theme.shadows[5],
+      padding: theme.spacing(2, 4, 3),
     },
   })
 )
@@ -74,6 +88,37 @@ export default function Home() {
       groupedImages: {},
       storedImages: [],
       action: 'Group',
+    })
+  }
+
+  function rand() {
+    return Math.round(Math.random() * 20) - 10
+  }
+
+  function getModalStyle() {
+    const top = 50 + rand()
+    const left = 50 + rand()
+
+    return {
+      top: `${top}%`,
+      left: `${left}%`,
+      transform: `translate(-${top}%, -${left}%)`,
+    }
+  }
+
+  //state модального окна
+  const [modalStyle] = useState(getModalStyle)
+  const [open, setOpen] = useState({
+    open: false,
+    name: '',
+    description: '',
+  })
+
+  const handleClose = () => {
+    setOpen({
+      open: false,
+      name: '',
+      description: '',
     })
   }
 
@@ -142,33 +187,41 @@ export default function Home() {
              * реализации форм, так стандартные хуки из коробки
              */
             const response = await fetch(
-              `https://yandex.com/v1/gifs/random?api  _key=1FIYRBT8TY3tPb1RuCLsnXg4Gx7kWeYp&tag=${values.tag}`,
-              {
-                headers: {
-                  'Access-Control-Allow-Origin': '*',
-                },
-                method: 'GET',
-                mode: 'cors',
-                cache: 'default',
-              }
+              `https://api.giphy.com/v1/gifs/random?api_key=1FIYRBT8TY3tPb1RuCLsnXg4Gx7kWeYp&tag=${values.tag}`
             )
               .then((res) => res.json())
-              .catch((e) => console.log('catch ' + e))
+              .catch(() =>
+                setOpen((prevState: ModalError) => ({
+                  ...prevState,
+                  open: true,
+                  name: 'Ой, что-то пошло не так...',
+                  description: 'Возникла http ошибка, попробуйте ещё раз',
+                }))
+              )
             if (response && response.data) {
-              setState({
-                groupedImages: { ...state.groupedImages },
-                storedImages: [
-                  ...state.storedImages,
-                  {
-                    tag: values.tag,
-                    image: response.data.image_url,
-                    height: parseInt(response.data.image_height),
-                    width: parseInt(response.data.image_width),
-                    updatedAt: Date.now(),
-                  },
-                ],
-                action: state.action,
-              })
+              if (!response.data.image_url) {
+                setOpen((prevState: ModalError) => ({
+                  ...prevState,
+                  open: true,
+                  name: 'Давайте попробуем что-нибудь другое',
+                  description: `Видимо на giphy картинок с ${values.tag} ещё не завезли`,
+                }))
+              } else {
+                setState({
+                  groupedImages: { ...state.groupedImages },
+                  storedImages: [
+                    ...state.storedImages,
+                    {
+                      tag: values.tag,
+                      image: response.data.image_url,
+                      height: parseInt(response.data.image_height),
+                      width: parseInt(response.data.image_width),
+                      updatedAt: Date.now(),
+                    },
+                  ],
+                  action: state.action,
+                })
+              }
             }
             setSubmitting(false)
           }}
@@ -195,6 +248,19 @@ export default function Home() {
         <Button variant="outlined" color="primary" onClick={groupImages}>
           {state.action}
         </Button>
+        <Modal
+          open={open.open}
+          onClose={handleClose}
+          aria-labelledby="error-title"
+          aria-describedby="error-description"
+        >
+          {
+            <div style={modalStyle} className={classes.paper}>
+              <h2 id="error-title">{open.name}</h2>
+              <p id="error-description">{open.description}</p>
+            </div>
+          }
+        </Modal>
         {state.storedImages.length && state.action === 'Group' ? (
           /**
            * Можно просто сделать map => img xs,
@@ -217,8 +283,8 @@ export default function Home() {
             ))}
           </GridList>
         ) : (
-          Object.entries(state.groupedImages).map(([key, value]) => (
-            <GridList key={key} className={classes.gridList} cols={2.5}>
+          Object.values(state.groupedImages).map((value: Giphy[], i) => (
+            <GridList key={i} className={classes.gridList} cols={2.5}>
               {value.map((img: Giphy, i: number) => (
                 <GridListTile
                   key={i}
