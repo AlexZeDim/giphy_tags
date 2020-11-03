@@ -6,7 +6,7 @@
   "scripts": {
     "production": "next start",
     "build": "next build",
-    "start": "next dev",
+    "start": "next dev -p 3001",
     "type-check": "tsc --pretty --noEmit",
     "format": "prettier --write .",
     "lint": "eslint . --ext ts --ext tsx --ext js",

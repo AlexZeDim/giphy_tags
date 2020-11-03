@@ -1,6 +1,6 @@
 # Giphy Tags
 
-~~Очередное~~ [тестовое задание позицию фронта](https://bitbucket.org/gostmarkov/test-assignment-frontend/src/master/)
+~~Очередное~~ [тестовое задание на позицию фронта](https://bitbucket.org/gostmarkov/test-assignment-frontend/src/master/)
 
  - React
  - Typescript
@@ -11,6 +11,6 @@
  
  Да можно, конечно, но это же тестовое, верно?
  
- На тот случай, если вдруг локально не соберется, приложение запущено на сервере по адресу:
+ На тот случай, если вдруг локально не соберется, приложение запущено на сервере, как только mini instance на GCP потянет билд
  
  
