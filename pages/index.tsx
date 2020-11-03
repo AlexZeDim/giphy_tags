@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Head from 'next/head'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import React, { useState } from 'react'
 import { Formik, Form, Field } from 'formik'
@@ -154,6 +155,9 @@ export default function Home() {
 
   return (
     <main>
+      <Head>
+        <title>{'Giphy Tags'}</title>
+      </Head>
       <CssBaseline />
       <Container maxWidth="lg">
         <Grid
@@ -161,11 +165,10 @@ export default function Home() {
           alignContent="center"
           direction="row"
           justify="center"
-          alignItems="center"
           spacing={3}
           style={{ minHeight: '100vh' }}
         >
-          <Grid item xs={12} sm={12} justify="center">
+          <Grid item xs={12} sm={12}>
             <Typography variant="h1" component="h2" gutterBottom>
               Giphy Tags
             </Typography>
