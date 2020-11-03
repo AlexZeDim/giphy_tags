@@ -183,7 +183,7 @@ export default function Home() {
             ))}
           </GridList>
         ) : (
-          ``
+          Object.keys(state.groupedImages).forEach((x) => console.log(x))
         )}
       </Container>
     </main>
