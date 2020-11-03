@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { Formik, Form, Field } from 'formik'
 import { TextField } from 'formik-material-ui'
 import groupBy from 'lodash.groupby'
+import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
 import {
   Button,
   Container,
@@ -30,7 +31,32 @@ interface Giphy {
   width: number
 }
 
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      justifyContent: 'space-around',
+      overflow: 'hidden',
+      backgroundColor: theme.palette.background.paper,
+    },
+    gridList: {
+      flexWrap: 'nowrap',
+      // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
+      transform: 'translateZ(0)',
+    },
+    title: {
+      color: theme.palette.primary.light,
+    },
+    titleBar: {
+      background:
+        'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+    },
+  }),
+);
+
 export default function Home() {
+  const classes = useStyles();
   /**
    * Делаем один большой state для управления состоянием всего приложения,
    * часть формы далее будет реализованна через Formik для управления состоянием формы
@@ -183,7 +209,24 @@ export default function Home() {
             ))}
           </GridList>
         ) : (
-          Object.keys(state.groupedImages).forEach((x) => console.log(x))
+          Object.keys(state.groupedImages).map((title: string, i: number) =>
+            <GridList key={i} className={classes.gridList} cols={2.5}>
+              {state.groupedImages.[title].map((img: Giphy, i: number) => (
+                <GridListTile
+                  key={i}
+                  cols={beautyGrid(window.innerWidth | 1920, img.width)}
+                >
+                  <Image
+                    src={img.image}
+                    width={img.width}
+                    height={img.height}
+                    alt={img.tag}
+                  />
+                  <GridListTileBar title={img.tag} />
+                </GridListTile>
+              ))}
+            </GridList>
+          )
         )}
       </Container>
     </main>
