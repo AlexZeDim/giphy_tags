@@ -1,4 +1,6 @@
-module.exports = {
+const withSass = require('@zeit/next-sass')
+
+module.exports = withSass({
   images: {
     domains: [
       '*.giphy.com',
@@ -16,4 +18,4 @@ module.exports = {
     path: '/_next/image',
     loader: 'default',
   },
-}
+})

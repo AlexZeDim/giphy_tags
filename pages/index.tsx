@@ -63,9 +63,6 @@ const useStyles = makeStyles((theme: Theme) =>
       boxShadow: theme.shadows[5],
       padding: theme.spacing(2, 4, 3),
     },
-    input: {
-      width: '65%',
-    },
   })
 )
 
@@ -250,7 +247,7 @@ export default function Home() {
                     type="tag"
                     label="tag"
                     name="tag"
-                    className={classes.input}
+                    className="input"
                   />
                   {isSubmitting && <LinearProgress />}
                   <Button
