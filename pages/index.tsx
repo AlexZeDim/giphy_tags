@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Formik, Form, Field } from 'formik'
 import { TextField } from 'formik-material-ui'
 import groupBy from 'lodash.groupby'
-import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
+import { Theme, createStyles, makeStyles } from '@material-ui/core/styles'
 import {
   Button,
   Container,
@@ -52,11 +52,11 @@ const useStyles = makeStyles((theme: Theme) =>
       background:
         'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
     },
-  }),
-);
+  })
+)
 
 export default function Home() {
-  const classes = useStyles();
+  const classes = useStyles()
   /**
    * Делаем один большой state для управления состоянием всего приложения,
    * часть формы далее будет реализованна через Formik для управления состоянием формы
@@ -141,21 +141,29 @@ export default function Home() {
              * что я могу использовать как сторонние библиотеки для
              * реализации форм, так стандартные хуки из коробки
              */
-            const { data, errors } = await fetch(
-              `https://api.giphy.com/v1/gifs/random?api_key=1FIYRBT8TY3tPb1RuCLsnXg4Gx7kWeYp&tag=${values.tag}`
-            ).then((res) => res.json())
-            if (errors) {
-              return
-            } else {
+            const response = await fetch(
+              `https://yandex.com/v1/gifs/random?api  _key=1FIYRBT8TY3tPb1RuCLsnXg4Gx7kWeYp&tag=${values.tag}`,
+              {
+                headers: {
+                  'Access-Control-Allow-Origin': '*',
+                },
+                method: 'GET',
+                mode: 'cors',
+                cache: 'default',
+              }
+            )
+              .then((res) => res.json())
+              .catch((e) => console.log('catch ' + e))
+            if (response && response.data) {
               setState({
                 groupedImages: { ...state.groupedImages },
                 storedImages: [
                   ...state.storedImages,
                   {
                     tag: values.tag,
-                    image: data.image_url,
-                    height: parseInt(data.image_height),
-                    width: parseInt(data.image_width),
+                    image: response.data.image_url,
+                    height: parseInt(response.data.image_height),
+                    width: parseInt(response.data.image_width),
                     updatedAt: Date.now(),
                   },
                 ],
@@ -209,9 +217,9 @@ export default function Home() {
             ))}
           </GridList>
         ) : (
-          Object.keys(state.groupedImages).map((title: string, i: number) =>
-            <GridList key={i} className={classes.gridList} cols={2.5}>
-              {state.groupedImages.[title].map((img: Giphy, i: number) => (
+          Object.entries(state.groupedImages).map(([key, value]) => (
+            <GridList key={key} className={classes.gridList} cols={2.5}>
+              {value.map((img: Giphy, i: number) => (
                 <GridListTile
                   key={i}
                   cols={beautyGrid(window.innerWidth | 1920, img.width)}
@@ -226,7 +234,7 @@ export default function Home() {
                 </GridListTile>
               ))}
             </GridList>
-          )
+          ))
         )}
       </Container>
     </main>
