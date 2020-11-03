@@ -13,6 +13,8 @@ import {
   GridListTile,
   GridListTileBar,
   Modal,
+  Grid,
+  Typography,
 } from '@material-ui/core'
 
 /**
@@ -40,13 +42,6 @@ interface ModalError {
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
-    root: {
-      display: 'flex',
-      flexWrap: 'wrap',
-      justifyContent: 'space-around',
-      overflow: 'hidden',
-      backgroundColor: theme.palette.background.paper,
-    },
     gridList: {
       flexWrap: 'nowrap',
       transform: 'translateZ(0)',
@@ -161,147 +156,174 @@ export default function Home() {
     <main>
       <CssBaseline />
       <Container maxWidth="lg">
-        <Formik
-          initialValues={{
-            tag: '',
-          }}
-          validate={(values) => {
-            /**
-             * Пусть форма делает reject input
-             * без <popover> или <modal>
-             */
-            const errors: Partial<Values> = {}
-            if (!values.tag) {
-              errors.tag = 'Required'
-            } else if (!/^[A-Za-z0-9]/i.test(values.tag)) {
-              errors.tag = 'Only letters or numbers are allowed!'
-            }
-            return errors
-          }}
-          onSubmit={async (values, { setSubmitting }) => {
-            /**
-             * А можно ли было вообще обойтись без Formik? -да, конечно
-             * так-же вместо него, можно было бы взять Redux или
-             * React Hook Form, впрочем моя задача здесь, показать
-             * что я могу использовать как сторонние библиотеки для
-             * реализации форм, так стандартные хуки из коробки
-             */
-            const response = await fetch(
-              `https://api.giphy.com/v1/gifs/random?api_key=1FIYRBT8TY3tPb1RuCLsnXg4Gx7kWeYp&tag=${values.tag}`
-            )
-              .then((res) => res.json())
-              .catch(() =>
-                setOpen((prevState: ModalError) => ({
-                  ...prevState,
-                  open: true,
-                  name: 'Ой, что-то пошло не так...',
-                  description: 'Возникла http ошибка, попробуйте ещё раз',
-                }))
-              )
-            if (response && response.data) {
-              if (!response.data.image_url) {
-                setOpen((prevState: ModalError) => ({
-                  ...prevState,
-                  open: true,
-                  name: 'Давайте попробуем что-нибудь другое',
-                  description: `Видимо на giphy картинок с ${values.tag} ещё не завезли`,
-                }))
-              } else {
-                setState({
-                  groupedImages: { ...state.groupedImages },
-                  storedImages: [
-                    ...state.storedImages,
-                    {
-                      tag: values.tag,
-                      image: response.data.image_url,
-                      height: parseInt(response.data.image_height),
-                      width: parseInt(response.data.image_width),
-                      updatedAt: Date.now(),
-                    },
-                  ],
-                  action: state.action,
-                })
-              }
-            }
-            setSubmitting(false)
-          }}
+        <Grid
+          container
+          alignContent="center"
+          direction="row"
+          justify="center"
+          alignItems="center"
+          spacing={3}
+          style={{ minHeight: '100vh' }}
         >
-          {({ submitForm, isSubmitting }) => (
-            <Form>
-              <Field component={TextField} type="tag" label="tag" name="tag" />
-              {isSubmitting && <LinearProgress />}
-              <br />
-              <Button
-                variant="outlined"
-                color="primary"
-                disabled={isSubmitting}
-                onClick={submitForm}
-              >
-                Submit
-              </Button>
-            </Form>
-          )}
-        </Formik>
-        <Button variant="contained" color="primary" onClick={handlePurge}>
-          Purge
-        </Button>
-        <Button variant="outlined" color="primary" onClick={groupImages}>
-          {state.action}
-        </Button>
-        <Modal
-          open={open.open}
-          onClose={handleClose}
-          aria-labelledby="error-title"
-          aria-describedby="error-description"
-        >
-          {
-            <div style={modalStyle} className={classes.paper}>
-              <h2 id="error-title">{open.name}</h2>
-              <p id="error-description">{open.description}</p>
-            </div>
-          }
-        </Modal>
-        {state.storedImages.length && state.action === 'Group' ? (
-          /**
-           * Можно просто сделать map => img xs,
-           * но зачем, если есть Material GridList?
-           */
-          <GridList cellHeight={250} cols={5}>
-            {state.storedImages.map((img: Giphy, i: number) => (
-              <GridListTile
-                key={i}
-                cols={beautyGrid(window.innerWidth | 1920, img.width)}
-              >
-                <Image
-                  src={img.image}
-                  width={img.width}
-                  height={img.height}
-                  alt={img.tag}
-                />
-                <GridListTileBar title={img.tag} />
-              </GridListTile>
-            ))}
-          </GridList>
-        ) : (
-          Object.values(state.groupedImages).map((value: Giphy[], i) => (
-            <GridList key={i} className={classes.gridList} cols={2.5}>
-              {value.map((img: Giphy, i: number) => (
-                <GridListTile
-                  key={i}
-                  cols={beautyGrid(window.innerWidth | 1920, img.width)}
-                >
-                  <Image
-                    src={img.image}
-                    width={img.width}
-                    height={img.height}
-                    alt={img.tag}
+          <Grid item xs={12} sm={12} justify="center">
+            <Typography variant="h1" component="h2" gutterBottom>
+              Giphy Tags
+            </Typography>
+          </Grid>
+          <Grid item xs={6} sm={6}>
+            <Formik
+              initialValues={{
+                tag: '',
+              }}
+              validate={(values) => {
+                /**
+                 * Пусть форма делает reject input
+                 * без <popover> или <modal>
+                 */
+                const errors: Partial<Values> = {}
+                if (!values.tag) {
+                  errors.tag = 'Required'
+                } else if (!/^[A-Za-z0-9]/i.test(values.tag)) {
+                  errors.tag = 'Only letters or numbers are allowed!'
+                }
+                return errors
+              }}
+              onSubmit={async (values, { setSubmitting }) => {
+                /**
+                 * А можно ли было вообще обойтись без Formik? -да, конечно
+                 * так-же вместо него, можно было бы взять Redux или
+                 * React Hook Form, впрочем моя задача здесь, показать
+                 * что я могу использовать как сторонние библиотеки для
+                 * реализации форм, так стандартные хуки из коробки
+                 */
+                const response = await fetch(
+                  `https://api.giphy.com/v1/gifs/random?api_key=1FIYRBT8TY3tPb1RuCLsnXg4Gx7kWeYp&tag=${values.tag}`
+                )
+                  .then((res) => res.json())
+                  .catch(() =>
+                    setOpen((prevState: ModalError) => ({
+                      ...prevState,
+                      open: true,
+                      name: 'Ой, что-то пошло не так...',
+                      description: 'Возникла http ошибка, попробуйте ещё раз',
+                    }))
+                  )
+                if (response && response.data) {
+                  if (!response.data.image_url) {
+                    setOpen((prevState: ModalError) => ({
+                      ...prevState,
+                      open: true,
+                      name: 'Давайте попробуем что-нибудь другое',
+                      description: `Видимо на giphy картинок с ${values.tag} ещё не завезли`,
+                    }))
+                  } else {
+                    setState({
+                      groupedImages: { ...state.groupedImages },
+                      storedImages: [
+                        ...state.storedImages,
+                        {
+                          tag: values.tag,
+                          image: response.data.image_url,
+                          height: parseInt(response.data.image_height),
+                          width: parseInt(response.data.image_width),
+                          updatedAt: Date.now(),
+                        },
+                      ],
+                      action: state.action,
+                    })
+                  }
+                }
+                setSubmitting(false)
+              }}
+            >
+              {({ submitForm, isSubmitting }) => (
+                <Form>
+                  <Field
+                    component={TextField}
+                    type="tag"
+                    label="tag"
+                    name="tag"
                   />
-                  <GridListTileBar title={img.tag} />
-                </GridListTile>
-              ))}
-            </GridList>
-          ))
-        )}
+                  {isSubmitting && <LinearProgress />}
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    disabled={isSubmitting}
+                    onClick={submitForm}
+                  >
+                    Submit
+                  </Button>
+                </Form>
+              )}
+            </Formik>
+          </Grid>
+          <Grid item xs={3} sm={3}>
+            <Button variant="contained" color="primary" onClick={handlePurge}>
+              Purge
+            </Button>
+          </Grid>
+          <Grid item xs={3} sm={3}>
+            <Button variant="outlined" color="primary" onClick={groupImages}>
+              {state.action}
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={12}>
+            <Modal
+              open={open.open}
+              onClose={handleClose}
+              aria-labelledby="error-title"
+              aria-describedby="error-description"
+            >
+              {
+                <div style={modalStyle} className={classes.paper}>
+                  <h2 id="error-title">{open.name}</h2>
+                  <p id="error-description">{open.description}</p>
+                </div>
+              }
+            </Modal>
+            {state.storedImages.length && state.action === 'Group' ? (
+              /**
+               * Можно просто сделать map => img xs,
+               * но зачем, если есть Material GridList?
+               */
+              <GridList cellHeight={250} cols={5}>
+                {state.storedImages.map((img: Giphy, i: number) => (
+                  <GridListTile
+                    key={i}
+                    cols={beautyGrid(window.innerWidth | 1920, img.width)}
+                  >
+                    <Image
+                      src={img.image}
+                      width={img.width}
+                      height={img.height}
+                      alt={img.tag}
+                    />
+                    <GridListTileBar title={img.tag} />
+                  </GridListTile>
+                ))}
+              </GridList>
+            ) : (
+              Object.values(state.groupedImages).map((value: Giphy[], i) => (
+                <GridList key={i} className={classes.gridList} cols={2.5}>
+                  {value.map((img: Giphy, i: number) => (
+                    <GridListTile
+                      key={i}
+                      cols={beautyGrid(window.innerWidth | 1920, img.width)}
+                    >
+                      <Image
+                        src={img.image}
+                        width={img.width}
+                        height={img.height}
+                        alt={img.tag}
+                      />
+                      <GridListTileBar title={img.tag} />
+                    </GridListTile>
+                  ))}
+                </GridList>
+              ))
+            )}
+          </Grid>
+        </Grid>
       </Container>
     </main>
   )
